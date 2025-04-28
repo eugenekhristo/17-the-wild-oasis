@@ -56,7 +56,6 @@ const Button = styled.button`
   padding: 1.2rem 1.6rem;
   border-radius: var(--border-radius-lg);
   cursor: pointer;
-  margin: 20px;
   box-shadow: var(--shadow-md);
   border: none;
   font-weight: 600;
