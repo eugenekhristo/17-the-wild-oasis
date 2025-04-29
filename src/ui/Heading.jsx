@@ -13,7 +13,7 @@ const Heading = styled.h1`
       font-size: 2.4rem;
     `} 
 
-    ${(props) =>
+  ${(props) =>
     props.as === 'h3' &&
     css`
       font-size: 2rem;
@@ -21,7 +21,6 @@ const Heading = styled.h1`
 
   color: var(--color-grey-900);
   line-height: 1.2;
-  margin-bottom: 2.4rem;
 `;
 
 export default Heading;
