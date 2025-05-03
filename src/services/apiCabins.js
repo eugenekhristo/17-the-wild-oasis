@@ -20,20 +20,31 @@ export async function deleteCabin(id) {
   }
 }
 
-export async function createCabin(newCabin) {
+export async function createEditCabin(newCabin, id) {
+  const hasImagePath = newCabin.image?.startsWith?.(supabaseUrl);
+
   //1. Create a name of the image and its pathname on supabase bucker storage
   //https://lphlyevswrnzclhgueyf.supabase.co/storage/v1/object/public/cabin-images//cabin-001.jpg
   const imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll(
     '/',
     ''
   );
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+  const imagePath = hasImagePath
+    ? newCabin.image
+    : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
 
-  //2. Create a new cabin
-  const { data, error } = await supabase
-    .from('cabins')
-    .insert([{ ...newCabin, image: imagePath }])
-    .select();
+  //2. Create/edit cabin
+  let query = supabase.from('cabins');
+
+  if (!id) {
+    // A) Creating cabin
+    query = query.insert([{ ...newCabin, image: imagePath }]);
+  } else {
+    // B) Editing cabin
+    query = query.update({ ...newCabin, image: imagePath }).eq('id', id);
+  }
+
+  const { data, error } = await query.select().single();
 
   if (error) {
     console.error(error);
