@@ -1,6 +1,4 @@
 /* eslint-disable react/prop-types */
-import toast from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 import Input from '../../ui/Input';
@@ -9,8 +7,8 @@ import Button from '../../ui/Button';
 import FileInput from '../../ui/FileInput';
 import Textarea from '../../ui/Textarea';
 import FormRow from '../../ui/FormRow';
-
-import { createEditCabin } from '../../services/apiCabins';
+import useCreateCabin from './useCreateCabin';
+import useEditCabin from './useEditCabin';
 
 function CreateCabinForm({ cabinToEdit = {} }) {
   const { id: editCabinID, ...editValues } = cabinToEdit;
@@ -21,33 +19,8 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   });
   const { errors } = formState;
 
-  const queryClient = useQueryClient();
-
-  const { isLoading: isCreating, mutate: createCabin } = useMutation({
-    mutationFn: createEditCabin,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['cabins'],
-      });
-      toast.success('Cabin is successfully created!');
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const { isLoading: isEditing, mutate: editCabin } = useMutation({
-    mutationFn: ({ newCabin, id }) => {
-      createEditCabin(newCabin, id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['cabins'],
-      });
-      toast.success('Cabin is successfully updated!');
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const { isCreating, createCabin } = useCreateCabin();
+  const { isEditing, editCabin } = useEditCabin();
 
   const isProcessing = isCreating || isEditing;
 
@@ -55,26 +28,37 @@ function CreateCabinForm({ cabinToEdit = {} }) {
     const image = typeof data.image === 'string' ? data.image : data.image[0];
 
     if (isEditSession) {
-      editCabin({
-        newCabin: {
-          ...data,
-          image,
+      editCabin(
+        {
+          newCabin: {
+            ...data,
+            image,
+          },
+          id: editCabinID,
         },
-        id: editCabinID,
-      });
+        { onSuccess: () => reset() }
+      );
     } else {
-      createCabin({ ...data, image });
+      createCabin(
+        { ...data, image },
+        {
+          onSuccess: () => {
+            reset();
+          },
+        }
+      );
     }
   }
 
   // this function is just to show that handleSubmit func is accepting such a argumrnt for errors if needed
-  function onError(error) {
-    // console.log(error);
-    // return error;
-  }
+  // function onError(error) {
+  //   console.log(error);
+  //   return error;
+  // }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    // <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    <Form onSubmit={handleSubmit(onSubmit)}>
       <FormRow label={'Cabin name'} error={errors?.name?.message}>
         <Input
           type="text"
