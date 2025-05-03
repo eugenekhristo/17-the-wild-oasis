@@ -1,4 +1,4 @@
-import supabase from './supabase';
+import supabase, { supabaseUrl } from './supabase';
 
 export async function getCabins() {
   const { data, error } = await supabase.from('cabins').select('*');
@@ -21,14 +21,37 @@ export async function deleteCabin(id) {
 }
 
 export async function createCabin(newCabin) {
+  //1. Create a name of the image and its pathname on supabase bucker storage
+  //https://lphlyevswrnzclhgueyf.supabase.co/storage/v1/object/public/cabin-images//cabin-001.jpg
+  const imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll(
+    '/',
+    ''
+  );
+  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+
+  //2. Create a new cabin
   const { data, error } = await supabase
     .from('cabins')
-    .insert([newCabin])
+    .insert([{ ...newCabin, image: imagePath }])
     .select();
 
   if (error) {
     console.error(error);
     throw new Error('Cabin could not be created');
+  }
+
+  //3. Upload image
+  const { error: storageError } = await supabase.storage
+    .from('cabin-images')
+    .upload(imageName, newCabin.image);
+
+  //4. Delete cabin if errror during upload
+  if (storageError) {
+    await supabase.from('cabins').delete().eq('id', data.id);
+    console.error(error);
+    throw new Error(
+      'Cabin image could not be uploaded and the cabin was not created'
+    );
   }
 
   return data;
