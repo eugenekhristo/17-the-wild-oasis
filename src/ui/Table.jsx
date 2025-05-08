@@ -88,22 +88,20 @@ function Row({ children }) {
   );
 }
 
-function Body({ children }) {
-  return <StyledBody>{children}</StyledBody>;
+function Body({ data, render }) {
+  if (!data.length)
+    return <StyledEmpty>There are no cabins added yet! 😀</StyledEmpty>;
+
+  return <StyledBody>{data.map(render)}</StyledBody>;
 }
 
 function Footer({ children }) {
   return <StyledFooter>{children}</StyledFooter>;
 }
 
-function Empty({ children }) {
-  return <StyledEmpty>{children}</StyledEmpty>;
-}
-
 Table.Header = Header;
 Table.Row = Row;
 Table.Body = Body;
 Table.Footer = Footer;
-Table.Empty = Empty;
 
 export default Table;
