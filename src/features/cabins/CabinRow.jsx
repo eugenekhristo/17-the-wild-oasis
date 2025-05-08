@@ -2,10 +2,11 @@
 import styled from 'styled-components';
 import { formatCurrency } from '../../utils/helpers';
 import CreateCabinForm from './CreateCabinForm';
-import { useState } from 'react';
 import useDeleteCabin from './useDeleteCabin';
 import { HiPencil, HiSquare2Stack, HiTrash } from 'react-icons/hi2';
 import useCreateCabin from './useCreateCabin';
+import Modal from '../../ui/Modal';
+import ConfirmDelete from '../../ui/ConfirmDelete';
 
 const TableRow = styled.div`
   display: grid;
@@ -47,7 +48,6 @@ const Discount = styled.div`
 `;
 
 function CabinRow({ cabin }) {
-  const [showForm, setShowForm] = useState(false);
   const { isDeleting, deleteCabin } = useDeleteCabin();
   const { isCreating, createCabin } = useCreateCabin();
 
@@ -89,18 +89,32 @@ function CabinRow({ cabin }) {
           <button onClick={() => handleDuplicateCabin()} disabled={isCreating}>
             <HiSquare2Stack />
           </button>
-          <button
-            disabled={isDeleting}
-            onClick={() => setShowForm((showForm) => !showForm)}
-          >
-            <HiPencil />
-          </button>
-          <button disabled={isDeleting} onClick={() => deleteCabin(cabinID)}>
-            <HiTrash />
-          </button>
+          <Modal>
+            <Modal.Open opens="editCabin">
+              <button disabled={isDeleting}>
+                <HiPencil />
+              </button>
+            </Modal.Open>
+
+            <Modal.Window name="editCabin">
+              <CreateCabinForm cabinToEdit={cabin} />
+            </Modal.Window>
+
+            <Modal.Open>
+              <button disabled={isDeleting}>
+                <HiTrash />
+              </button>
+            </Modal.Open>
+            <Modal.Window>
+              <ConfirmDelete
+                resourceName="Cabin"
+                disabled={isDeleting}
+                onConfirm={() => deleteCabin(cabinID)}
+              />
+            </Modal.Window>
+          </Modal>
         </div>
       </TableRow>
-      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
     </>
   );
 }
